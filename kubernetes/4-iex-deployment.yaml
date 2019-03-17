@@ -1,0 +1,35 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: iex
+  labels:
+    app: iex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iex
+  template:
+    metadata:
+      labels:
+        app: iex
+    spec:
+      containers:
+        - name: iex
+          image: pepote53/iex-data-loader:dev
+          imagePullPolicy: Always
+          env:
+            - name: DATABASE_SERVER
+              value: iex-mysql #this has to be created already
+            - name: DATABASE_USERNAME
+              value: root
+            - name: FIXEDDELAYMS
+              value: "3600000"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-root-password
+                  name: iex-mysql
+          ports:
+            - containerPort: 8080
+              protocol: TCP

@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: iex
+  labels:
+    app: iex
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: iex

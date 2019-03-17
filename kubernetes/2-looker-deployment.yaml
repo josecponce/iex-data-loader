@@ -1,0 +1,32 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: looker
+  labels:
+    app: looker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: looker
+  template:
+    metadata:
+      labels:
+        app: looker
+    spec:
+      containers:
+      - name: looker-web
+        image: pepote53/looker-server:dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9999
+          protocol: TCP
+        - containerPort: 19999
+          protocol: TCP
+        volumeMounts:
+        - name: looker
+          mountPath: /root/looker
+      volumes:
+      - name: looker
+        persistentVolumeClaim:
+          claimName: looker

@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: looker
+  labels:
+    app: looker
+spec:
+  type: NodePort
+  ports:
+  - name: web
+    port: 9999
+    targetPort: 9999
+  - name: api
+    port: 19999
+    targetPort: 19999
+  selector:
+    app: looker
