@@ -1,12 +1,12 @@
 package com.josecponce.stockdata.iexdataloader.batch;
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.josecponce.stockdata.iexdataloader.batch.jpaentities.*;
 import com.josecponce.stockdata.iexdataloader.iextrading.IexClient;
 import josecponce.springbatchhelpers.readers.SynchronizedIteratorItemReader;
 import josecponce.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -22,16 +22,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import pl.zankowski.iextrading4j.api.refdata.ExchangeSymbol;
 import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
-import pl.zankowski.iextrading4j.api.stocks.ChartRange;
-import pl.zankowski.iextrading4j.api.stocks.Dividends;
-import pl.zankowski.iextrading4j.api.stocks.KeyStats;
-import pl.zankowski.iextrading4j.client.rest.manager.RestRequest;
 import pl.zankowski.iextrading4j.client.rest.request.refdata.SymbolsRequestBuilder;
 import pl.zankowski.iextrading4j.client.rest.request.stocks.*;
 
 import javax.ws.rs.ProcessingException;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 
@@ -83,7 +81,7 @@ public class BatchConfiguration {
     public Step loadExchangeSymbols(ParallelJpaToJpaStepBuilder<ExchangeSymbol, ExchangeSymbolEntity> stepBuilder) {
         return stepBuilder.withName(LOAD_EXCHANGE_SYMBOLS_STEP)
                 .withChunk(100)
-                .withConcurrency(5)
+                .withConcurrency(50)
                 .withInClass(ExchangeSymbol.class)
                 .withReader(new SynchronizedIteratorItemReader<>(client.request(new SymbolsRequestBuilder().build()).iterator()))
                 .withProcessor(symbol -> converter.convert(symbol, ExchangeSymbolEntity.class))
@@ -96,13 +94,12 @@ public class BatchConfiguration {
     public Step loadKeyStats(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<KeyStatsEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_KEY_STATS_STEP)
                 .withChunk(100)
-                .withConcurrency(10)
+                .withConcurrency(2)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<KeyStatsEntity>>() {
                     @Override
                     public List<KeyStatsEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
-                        val stats = client.requestBatch(symbols.stream().map(ExchangeSymbolEntity::getSymbolEncoded).collect(Collectors.toList()),
-                                BatchStocksType.KEY_STATS);
+                        val stats = client.requestBatch(getSymbols(symbols), BatchStocksType.KEY_STATS);
                         return stats.entrySet().stream().map(kv -> {
                             KeyStatsEntity stat = converter.convert(kv.getValue().getKeyStats(), KeyStatsEntity.class);
                             stat.setSymbol(kv.getKey());
@@ -115,17 +112,19 @@ public class BatchConfiguration {
 
     @Bean(LOAD_DIVIDENDS_STEP)
     @Scope(scopeName = "prototype")
-    public Step loadDividends(ParallelJpaToJpaStepBuilder<ExchangeSymbolEntity, List<DividendsEntity>> stepBuilder) {
+    public Step loadDividends(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<DividendsEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_DIVIDENDS_STEP)
+                //4:47 at 50/10
                 .withChunk(100)
-                .withConcurrency(8)
-                .withProcessor(new ItemProcessor<ExchangeSymbolEntity, List<DividendsEntity>>() {
+                .withConcurrency(20)
+                .withInComponentClass(ExchangeSymbolEntity.class)
+                .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<DividendsEntity>>() {
                     @Override
-                    public List<DividendsEntity> process(ExchangeSymbolEntity symbol) throws Exception {
-                        val dividends = client.request(new DividendsRequestBuilder().withSymbol(symbol.getSymbolEncoded())
-                                .withDividendRange(DividendRange.FIVE_YEARS).build());
-                        return dividends.stream().map(div -> converter.convert(div, DividendsEntity.class))
-                                .peek(div -> div.setSymbol(symbol.getSymbol())).collect(Collectors.toList());
+                    public List<DividendsEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                        val dividends = client.requestBatch(getSymbols(symbols), BatchStocksType.DIVIDENDS);
+                        return dividends.entrySet().stream().flatMap(kv ->
+                                kv.getValue().getDividends().stream().map(div -> converter.convert(div, DividendsEntity.class))
+                                        .peek(div -> div.setSymbol(kv.getKey()))).collect(Collectors.toList());
                     }
                 })
                 .build();
@@ -133,20 +132,26 @@ public class BatchConfiguration {
 
     @Bean(LOAD_SPLITS_STEP)
     @Scope(scopeName = "prototype")
-    public Step loadSplits(ParallelJpaToJpaStepBuilder<ExchangeSymbolEntity, List<SplitEntity>> stepBuilder) {
+    public Step loadSplits(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<SplitEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_SPLITS_STEP)
                 .withChunk(100)
-                .withConcurrency(3)
-                .withSkip(Collections.singletonList(ProcessingException.class))
-                .withProcessor(new ItemProcessor<ExchangeSymbolEntity, List<SplitEntity>>() {
+                .withConcurrency(1)
+                .withInComponentClass(ExchangeSymbolEntity.class)
+//                .withSkip(Collections.singletonList(ProcessingException.class))
+                .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<SplitEntity>>() {
                     @Override
-                    public List<SplitEntity> process(ExchangeSymbolEntity symbol) throws Exception {
-                        val splits = client.request(new SplitsRequestBuilder().withSymbol(symbol.getSymbolEncoded())
-                                .withSplitsRange(SplitsRange.FIVE_YEARS).build());
-                        return splits.stream().map(split -> converter.convert(split, SplitEntity.class))
-                                .peek(split -> split.setSymbol(symbol.getSymbol())).collect(Collectors.toList());
+                    public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                        Map<String, BatchStocks> splits = client.requestBatch(getSymbols(symbols), BatchStocksType.SPLITS);
+                        List<SplitEntity> result = splits.entrySet().stream().flatMap(kv ->
+                                kv.getValue().getSplits().stream().map(split -> converter.convert(split, SplitEntity.class))
+                                        .peek(split -> split.setSymbol(kv.getKey()))).collect(Collectors.toList());
+                        return result;
                     }
                 })
                 .build();
+    }
+
+    private List<String> getSymbols(List<ExchangeSymbolEntity> symbols) {
+        return symbols.stream().map(ExchangeSymbolEntity::getSymbolEncoded).collect(Collectors.toList());
     }
 }
