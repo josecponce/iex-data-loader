@@ -4,9 +4,9 @@ spring:
     username: ${database.username:root}
     password: ${database.password:Passw0rd}
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 50
       idle-timeout: 30000
-      connection-timeout: 5000
+      connection-timeout: 10000
       initialization-fail-timeout: 5000
       login-timeout: 5000
       validation-timeout: 5000
@@ -15,12 +15,7 @@ spring:
     job:
       enabled: false
 
-  jackson:
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
-
 fixedDelayMs: 1000
-
 
 logging:
   level:

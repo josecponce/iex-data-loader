@@ -1,15 +1,14 @@
 package com.josecponce.stockdata.iexdataloader.iextrading;
 
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.DividendsEntity;
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.ExchangeSymbolEntity;
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.KeyStatsEntity;
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.SplitEntity;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
+import pl.zankowski.iextrading4j.client.rest.manager.RestRequest;
+import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchMarketStocksRequestBuilder;
+import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
+
+import java.util.List;
+import java.util.Map;
 
 public interface IexClient {
-    Flux<ExchangeSymbolEntity> getSymbols();
-    Flux<DividendsEntity> getDividends(String symbol);
-    Flux<SplitEntity> getSplits(String symbol);
-    Mono<KeyStatsEntity> getKeyStats(String symbol);
+    <R> R request(RestRequest<R> request);
+    Map<String, BatchStocks> requestBatch(List<String> symbols, BatchStocksType type);
 }

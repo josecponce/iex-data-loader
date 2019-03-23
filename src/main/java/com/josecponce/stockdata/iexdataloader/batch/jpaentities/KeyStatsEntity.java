@@ -1,5 +1,6 @@
 package com.josecponce.stockdata.iexdataloader.batch.jpaentities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,59 +23,58 @@ import java.time.LocalDateTime;
 public class KeyStatsEntity {
     @Id
     private String symbol;
+
     private String companyName;
-    private String marketcap;
-    private String beta;
-    private String week52high;
-    private String week52low;
-    private String week52change;
-    private String shortInterest;
-    private String shortDate;
-    private String dividendRate;
-    private String dividendYield;
-    private String exDividendDate;
-    private String latestEPS;
-    private String latestEPSDate;
-    private String sharesOutstanding;
+    private BigDecimal marketcap;
+    private BigDecimal beta;
+    private BigDecimal week52high;
+    private BigDecimal week52low;
+    private BigDecimal week52change;
+    private BigDecimal shortInterest;
+    private LocalDate shortDate;
+    private BigDecimal dividendRate;
+    private BigDecimal dividendYield;
+    private LocalDateTime exDividendDate;
+    private BigDecimal latestEPS;
+    private LocalDate latestEPSDate;
+    private BigDecimal sharesOutstanding;
     @Column(name = "_float")
-    private String Float;
-    private String returnOnEquity;
-    private String consensusEPS;
-    private String numberOfEstimates;
-    @JsonProperty("EPSSurpriseDollar")
-    private String EPSSurpriseDollar;
-    @JsonProperty("EPSSurprisePercent")
-    private String ePSSurprisePercent;
-    @JsonProperty("EBITDA")
-    private String eBITDA;
-    private String revenue;
-    private String grossProfit;
-    private String cash;
-    private String debt;
-    private String ttmEPS;
-    private String revenuePerShare;
-    private String revenuePerEmployee;
-    private String peRatioHigh;
-    private String peRatioLow;
-    private String returnOnAssets;
-    private String returnOnCapital;
-    private String profitMargin;
-    private String priceToSales;
-    private String priceToBook;
-    private String day200MovingAvg;
-    private String day50MovingAvg;
-    private String institutionPercent;
-    private String insiderPercent;
-    private String shortRatio;
-    private String year5ChangePercent;
-    private String year2ChangePercent;
-    private String year1ChangePercent;
-    private String ytdChangePercent;
-    private String month6ChangePercent;
-    private String month3ChangePercent;
-    private String month1ChangePercent;
-    private String day5ChangePercent;
-    private String day30ChangePercent;
+    private BigDecimal Float;
+    private BigDecimal returnOnEquity;
+    private BigDecimal consensusEPS;
+    private BigDecimal numberOfEstimates;
+    private BigDecimal EPSSurpriseDollar;
+    private BigDecimal EPSSurprisePercent;
+    private BigDecimal EBITDA;
+    private BigDecimal revenue;
+    private BigDecimal grossProfit;
+    private BigDecimal cash;
+    private BigDecimal debt;
+    private BigDecimal ttmEPS;
+    private BigDecimal revenuePerShare;
+    private BigDecimal revenuePerEmployee;
+    private BigDecimal peRatioHigh;
+    private BigDecimal peRatioLow;
+    private BigDecimal returnOnAssets;
+    private BigDecimal returnOnCapital;
+    private BigDecimal profitMargin;
+    private BigDecimal priceToSales;
+    private BigDecimal priceToBook;
+    private BigDecimal day200MovingAvg;
+    private BigDecimal day50MovingAvg;
+    private BigDecimal institutionPercent;
+    private BigDecimal insiderPercent;
+    private BigDecimal shortRatio;
+    private BigDecimal year5ChangePercent;
+    private BigDecimal year2ChangePercent;
+    private BigDecimal year1ChangePercent;
+    private BigDecimal ytdChangePercent;
+    private BigDecimal month6ChangePercent;
+    private BigDecimal month3ChangePercent;
+    private BigDecimal month1ChangePercent;
+    private BigDecimal day5ChangePercent;
+    private BigDecimal day30ChangePercent;
+
     @UpdateTimestamp
     private LocalDateTime lastUpdated;
 }

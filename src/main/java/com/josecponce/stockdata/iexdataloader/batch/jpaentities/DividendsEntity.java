@@ -4,12 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
+import pl.zankowski.iextrading4j.api.stocks.DividendQualification;
+import pl.zankowski.iextrading4j.api.stocks.DividendType;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,14 +26,14 @@ public class DividendsEntity implements Serializable {
     @Id
     private String symbol;
     @Id
-    private String exDate;
-    private String paymentDate;
-    private String recordDate;
-    private String declaredDate;
-    private String amount;
+    private LocalDate exDate;
+    private LocalDate paymentDate;
+    private LocalDate recordDate;
+    private LocalDate declaredDate;
+    private BigDecimal amount;
     private String flag;
-    private String type;
-    private String qualified;
+    private DividendType type;
+    private DividendQualification qualified;
     private String indicated;
     @UpdateTimestamp
     private LocalDateTime lastUpdated;
@@ -39,6 +43,6 @@ public class DividendsEntity implements Serializable {
     @AllArgsConstructor
     public static class DividendsEntityId implements Serializable {
         private String symbol;
-        private String exDate;
+        private LocalDate exDate;
     }
 }

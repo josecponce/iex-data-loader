@@ -24,13 +24,13 @@ public class SplitEntity {
     @Id
     private String symbol;
     @Id
-    private String exDate;
-    private String declaredDate;
-    private String recordDate;
-    private String paymentDate;
-    private String ratio;
-    private String toFactor;
-    private String forFactor;
+    private LocalDate exDate;
+    private LocalDate declaredDate;
+    private LocalDate recordDate;
+    private LocalDate paymentDate;
+    private BigDecimal ratio;
+    private BigDecimal toFactor;
+    private BigDecimal forFactor;
     @UpdateTimestamp
     private LocalDateTime lastUpdated;
 
@@ -39,6 +39,6 @@ public class SplitEntity {
     @AllArgsConstructor
     public static class SplitEntityId implements Serializable {
         private String symbol;
-        private String exDate;
+        private LocalDate exDate;
     }
 }
