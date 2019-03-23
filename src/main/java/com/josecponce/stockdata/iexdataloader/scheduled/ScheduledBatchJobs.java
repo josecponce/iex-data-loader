@@ -19,19 +19,19 @@ import org.springframework.stereotype.Component;
 public class ScheduledBatchJobs {
     private final ObjectFactory<Job> jobFactory;
     private final JobLauncher jobLauncher;
-    private final JobExplorer jobExplorer;
+    private final JobParametersBuilder parameters;
 
-    public ScheduledBatchJobs(ObjectFactory<Job> jobFactory, JobLauncher jobLauncher, JobExplorer jobExplorer) {
+    public ScheduledBatchJobs(ObjectFactory<Job> jobFactory, JobLauncher jobLauncher, JobParametersBuilder parameters) {
         this.jobFactory = jobFactory;
         this.jobLauncher = jobLauncher;
-        this.jobExplorer = jobExplorer;
+        this.parameters = parameters;
     }
 
     @Scheduled(fixedDelayString = "${fixedDelayMs}")
     public void run() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         Job job = jobFactory.getObject();
         long time = System.currentTimeMillis();
-        JobExecution execution = jobLauncher.run(job, new JobParametersBuilder(jobExplorer).getNextJobParameters(job).toJobParameters());
+        JobExecution execution = jobLauncher.run(job, parameters.getNextJobParameters(job).toJobParameters());
         log.info("Execution finished in {}s with exit status {}", (System.currentTimeMillis() - time) / 1000, execution.getExitStatus());
     }
 }

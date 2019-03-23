@@ -1,10 +1,9 @@
 package com.josecponce.stockdata.iexdataloader.batch;
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.josecponce.stockdata.iexdataloader.batch.jpaentities.*;
 import com.josecponce.stockdata.iexdataloader.iextrading.IexClient;
-import josecponce.springbatchhelpers.readers.SynchronizedIteratorItemReader;
-import josecponce.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
+import com.josecponce.stockdata.iexdataloader.springbatchhelpers.readers.SynchronizedIteratorItemReader;
+import com.josecponce.stockdata.iexdataloader.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.batch.core.Job;
@@ -23,13 +22,10 @@ import org.springframework.core.task.TaskExecutor;
 import pl.zankowski.iextrading4j.api.refdata.ExchangeSymbol;
 import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
 import pl.zankowski.iextrading4j.client.rest.request.refdata.SymbolsRequestBuilder;
-import pl.zankowski.iextrading4j.client.rest.request.stocks.*;
+import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
 
-import javax.ws.rs.ProcessingException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 
@@ -137,7 +133,6 @@ public class BatchConfiguration {
                 .withChunk(100)
                 .withConcurrency(1)
                 .withInComponentClass(ExchangeSymbolEntity.class)
-//                .withSkip(Collections.singletonList(ProcessingException.class))
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<SplitEntity>>() {
                     @Override
                     public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
