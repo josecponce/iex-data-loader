@@ -7,10 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import pl.zankowski.iextrading4j.api.stocks.DividendQualification;
 import pl.zankowski.iextrading4j.api.stocks.DividendType;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,7 +29,9 @@ public class DividendsEntity implements Serializable {
     private LocalDate declaredDate;
     private BigDecimal amount;
     private String flag;
+    @Enumerated(EnumType.STRING)
     private DividendType type;
+    @Enumerated(EnumType.STRING)
     private DividendQualification qualified;
     private String indicated;
     @UpdateTimestamp

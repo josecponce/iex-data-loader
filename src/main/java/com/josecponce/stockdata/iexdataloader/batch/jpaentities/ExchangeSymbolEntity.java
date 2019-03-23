@@ -6,10 +6,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 import pl.zankowski.iextrading4j.api.refdata.SymbolType;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -27,6 +24,7 @@ public class ExchangeSymbolEntity {
     private String name;
     private LocalDate date;
     private Boolean enabled;
+    @Enumerated(EnumType.STRING)
     private SymbolType type;
     private Long iexId;
     @UpdateTimestamp
