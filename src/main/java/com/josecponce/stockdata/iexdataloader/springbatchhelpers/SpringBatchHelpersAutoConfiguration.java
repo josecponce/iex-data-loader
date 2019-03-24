@@ -20,7 +20,7 @@ public class SpringBatchHelpersAutoConfiguration {
     }
 
     @Bean
-    public TaskExecutor executor(@Value("threadPoolSize") int threadPoolSize) {
+    public TaskExecutor executor(@Value("${threadPoolSize}") int threadPoolSize) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setDaemon(true);
         executor.setMaxPoolSize(threadPoolSize);
