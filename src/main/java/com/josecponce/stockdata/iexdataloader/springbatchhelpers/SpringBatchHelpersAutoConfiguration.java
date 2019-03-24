@@ -22,8 +22,8 @@ public class SpringBatchHelpersAutoConfiguration {
     public TaskExecutor executor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setDaemon(true);
-        executor.setMaxPoolSize(30);
-        executor.setCorePoolSize(30);
+        executor.setMaxPoolSize(130);
+        executor.setCorePoolSize(50);
         executor.initialize();
         return executor;
     }

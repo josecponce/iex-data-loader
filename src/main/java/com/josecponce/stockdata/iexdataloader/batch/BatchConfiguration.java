@@ -39,6 +39,7 @@ public class BatchConfiguration {
     private static final String LOAD_KEY_STATS_STEP = "Load Key Stats";
     private static final String LOAD_DIVIDENDS_STEP = "Load Dividends";
     private static final String LOAD_SPLITS_STEP = "Load Splits";
+    private static final String LOAD_CHART_DATA_STEP = "Load Chart data";
 
     private final JobBuilderFactory jobBuilder;
     private final IexClient client;
@@ -57,7 +58,8 @@ public class BatchConfiguration {
     public Job job(@Qualifier(LOAD_EXCHANGE_SYMBOLS_STEP) Step exchangeSymbols,
                    @Qualifier(LOAD_KEY_STATS_STEP) Step keyStats,
                    @Qualifier(LOAD_DIVIDENDS_STEP) Step dividends,
-                   @Qualifier(LOAD_SPLITS_STEP) Step splits) {
+                   @Qualifier(LOAD_SPLITS_STEP) Step splits,
+                   @Qualifier(LOAD_CHART_DATA_STEP) Step charts) {
         return jobBuilder.get(LOAD_IEX_DATA_JOB)
                 .preventRestart()
                 .incrementer(new RunIdIncrementer())
@@ -66,7 +68,8 @@ public class BatchConfiguration {
                         .split(executor).add(
                                 new FlowBuilder<Flow>(LOAD_KEY_STATS_STEP).start(keyStats).end(),
                                 new FlowBuilder<Flow>(LOAD_DIVIDENDS_STEP).start(dividends).end(),
-                                new FlowBuilder<Flow>(LOAD_SPLITS_STEP).start(splits).end()
+                                new FlowBuilder<Flow>(LOAD_SPLITS_STEP).start(splits).end(),
+                                new FlowBuilder<Flow>(LOAD_CHART_DATA_STEP).start(charts).end()
                         ).end())
                 .end()
                 .build();
@@ -137,10 +140,29 @@ public class BatchConfiguration {
                     @Override
                     public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
                         Map<String, BatchStocks> splits = client.requestBatch(getSymbols(symbols), BatchStocksType.SPLITS);
-                        List<SplitEntity> result = splits.entrySet().stream().flatMap(kv ->
+                        return splits.entrySet().stream().flatMap(kv ->
                                 kv.getValue().getSplits().stream().map(split -> converter.convert(split, SplitEntity.class))
                                         .peek(split -> split.setSymbol(kv.getKey()))).collect(Collectors.toList());
-                        return result;
+                    }
+                })
+                .build();
+    }
+
+    @Bean(LOAD_CHART_DATA_STEP)
+    @Scope(scopeName = "prototype")
+    public Step loadChartData(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<ChartEntity>> stepBuilder) {
+        return stepBuilder.withName(LOAD_CHART_DATA_STEP)
+                .withChunk(1)
+                .withConcurrency(100)
+                .withInComponentClass(ExchangeSymbolEntity.class)
+                .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<ChartEntity>>() {
+                    @Override
+                    public List<ChartEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                        return client.requestBatch(getSymbols(symbols), BatchStocksType.CHART)
+                                .entrySet().stream().flatMap(kv ->
+                                        kv.getValue().getChart().stream().map(c -> converter.convert(c, ChartEntity.class))
+                                        .peek(c -> c.setSymbol(kv.getKey()))
+                                ).collect(Collectors.toList());
                     }
                 })
                 .build();

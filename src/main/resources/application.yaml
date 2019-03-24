@@ -4,7 +4,7 @@ spring:
     username: ${database.username:root}
     password: ${database.password:Passw0rd}
     hikari:
-      maximum-pool-size: 50
+      maximum-pool-size: 100
       idle-timeout: 30000
       connection-timeout: 10000
       initialization-fail-timeout: 5000
@@ -15,10 +15,18 @@ spring:
     job:
       enabled: false
 
+timeRange: 5y
 fixedDelayMs: 1000
 
 logging:
   level:
+    org:
+      springframework:
+        batch:
+          core:
+            step:
+              item:
+                ChunkMonitor: error #this one is very annoying when doing batch jobs in parallel
     com:
       josecponce:
         stockdata:

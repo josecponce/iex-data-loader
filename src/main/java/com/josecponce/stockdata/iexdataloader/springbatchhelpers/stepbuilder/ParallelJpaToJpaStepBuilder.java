@@ -20,6 +20,8 @@ import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManagerFactory;
@@ -146,6 +148,12 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
         if (processor != null) {
             simpleStepBuilder = simpleStepBuilder.processor(processor);
         }
-        return simpleStepBuilder.taskExecutor(executor).throttleLimit(concurrency).build();
+
+        val transactionAttributes = new DefaultTransactionAttribute();
+        transactionAttributes.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
+        transactionAttributes.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+        return simpleStepBuilder.taskExecutor(executor).throttleLimit(concurrency)
+                .transactionAttribute(transactionAttributes)
+                .build();
     }
 }

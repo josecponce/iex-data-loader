@@ -24,7 +24,7 @@ spec:
             - name: DATABASE_USERNAME
               value: root
             - name: FIXEDDELAYMS
-              value: "3600000"
+              value: "21600000"
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:

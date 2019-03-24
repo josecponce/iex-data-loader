@@ -2,9 +2,10 @@ package com.josecponce.stockdata.iexdataloader.iextrading;
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.util.concurrent.RateLimiter;
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.ExchangeSymbolEntity;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
@@ -16,10 +17,8 @@ import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
 
 import javax.ws.rs.ProcessingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 //429 = too mamy requests
 @Service
@@ -27,6 +26,12 @@ import java.util.stream.Collectors;
 public class RateLimitedIexClient implements IexClient {
     private final RateLimiter rateLimiter = RateLimiter.create(80);
     private final IEXTradingClient client = IEXTradingClient.create();
+
+    private ChartRange range;
+
+    public RateLimitedIexClient(@Value("${timeRange}") String range) {
+        this.range = ChartRange.getValueFromCode(range);
+    }
 
     @Override
     public <R> R request(RestRequest<R> request) {
@@ -57,6 +62,14 @@ public class RateLimitedIexClient implements IexClient {
 
     private RestRequest<Map<String, BatchStocks>> getBatchRequest(List<String> symbols, BatchStocksType type) {
         return new BatchMarketStocksRequestBuilder()
-                .withChartRange(ChartRange.FIVE_YEARS).addType(type).withSymbols(symbols).build();
+                .withChartRange(this.range).addType(type).withSymbols(symbols).build();
+    }
+
+    public ChartRange getRange() {
+        return range;
+    }
+
+    public void setRange(ChartRange range) {
+        this.range = range;
     }
 }
