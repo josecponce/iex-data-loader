@@ -3,6 +3,7 @@ package com.josecponce.stockdata.iexdataloader.springbatchhelpers;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.item.database.JpaItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -19,11 +20,11 @@ public class SpringBatchHelpersAutoConfiguration {
     }
 
     @Bean
-    public TaskExecutor executor() {
+    public TaskExecutor executor(@Value("threadPoolSize") int threadPoolSize) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setDaemon(true);
-        executor.setMaxPoolSize(130);
-        executor.setCorePoolSize(50);
+        executor.setMaxPoolSize(threadPoolSize);
+        executor.setCorePoolSize(threadPoolSize);
         executor.initialize();
         return executor;
     }

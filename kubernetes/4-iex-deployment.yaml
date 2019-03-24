@@ -24,7 +24,11 @@ spec:
             - name: DATABASE_USERNAME
               value: root
             - name: FIXEDDELAYMS
-              value: "21600000"
+              value: "129600000"
+            - name: THREADPOOLSIZE
+              value: "50"
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE
+              value: "50"
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:

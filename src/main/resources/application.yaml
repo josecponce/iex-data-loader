@@ -15,6 +15,7 @@ spring:
     job:
       enabled: false
 
+threadPoolSize: 20
 timeRange: 5y
 fixedDelayMs: 1000
 
