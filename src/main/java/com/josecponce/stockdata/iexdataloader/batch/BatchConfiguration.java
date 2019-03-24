@@ -80,7 +80,7 @@ public class BatchConfiguration {
     public Step loadExchangeSymbols(ParallelJpaToJpaStepBuilder<ExchangeSymbol, ExchangeSymbolEntity> stepBuilder) {
         return stepBuilder.withName(LOAD_EXCHANGE_SYMBOLS_STEP)
                 .withChunk(100)
-                .withConcurrency(50)
+                .withConcurrency(20)
                 .withInClass(ExchangeSymbol.class)
                 .withReader(new SynchronizedIteratorItemReader<>(client.request(new SymbolsRequestBuilder().build()).iterator()))
                 .withProcessor(symbol -> converter.convert(symbol, ExchangeSymbolEntity.class))
@@ -93,7 +93,7 @@ public class BatchConfiguration {
     public Step loadKeyStats(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<KeyStatsEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_KEY_STATS_STEP)
                 .withChunk(100)
-                .withConcurrency(2)
+                .withConcurrency(1)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<KeyStatsEntity>>() {
                     @Override
@@ -115,7 +115,7 @@ public class BatchConfiguration {
         return stepBuilder.withName(LOAD_DIVIDENDS_STEP)
                 //4:47 at 50/10
                 .withChunk(100)
-                .withConcurrency(20)
+                .withConcurrency(5)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<DividendsEntity>>() {
                     @Override
@@ -153,7 +153,7 @@ public class BatchConfiguration {
     public Step loadChartData(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<ChartEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_CHART_DATA_STEP)
                 .withChunk(1)
-                .withConcurrency(100)
+                .withConcurrency(15)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<ChartEntity>>() {
                     @Override
