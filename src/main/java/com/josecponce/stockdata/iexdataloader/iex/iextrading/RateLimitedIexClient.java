@@ -1,8 +1,7 @@
-package com.josecponce.stockdata.iexdataloader.iextrading;
+package com.josecponce.stockdata.iexdataloader.iex.iextrading;
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.util.concurrent.RateLimiter;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,4 @@
-package com.josecponce.stockdata.iexdataloader.batch.jpaentities;
+package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

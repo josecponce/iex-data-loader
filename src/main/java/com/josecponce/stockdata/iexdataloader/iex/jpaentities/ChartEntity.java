@@ -1,4 +1,4 @@
-package com.josecponce.stockdata.iexdataloader.batch.jpaentities;
+package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @IdClass(ChartEntity.ChartEntityId.class)

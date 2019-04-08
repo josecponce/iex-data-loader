@@ -1,9 +1,8 @@
-package com.josecponce.stockdata.iexdataloader.iextrading;
+package com.josecponce.stockdata.iexdataloader.iex.iextrading;
 
 import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
 import pl.zankowski.iextrading4j.api.stocks.ChartRange;
 import pl.zankowski.iextrading4j.client.rest.manager.RestRequest;
-import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchMarketStocksRequestBuilder;
 import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
 
 import java.util.List;

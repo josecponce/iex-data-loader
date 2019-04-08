@@ -1,4 +1,4 @@
-package com.josecponce.stockdata.iexdataloader.batch.jpaentities;
+package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,7 +8,6 @@ import pl.zankowski.iextrading4j.api.refdata.SymbolType;
 
 import javax.persistence.*;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

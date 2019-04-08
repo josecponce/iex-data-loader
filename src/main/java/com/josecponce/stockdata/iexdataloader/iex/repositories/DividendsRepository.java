@@ -1,6 +1,6 @@
-package com.josecponce.stockdata.iexdataloader.batch.repositories;
+package com.josecponce.stockdata.iexdataloader.iex.repositories;
 
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.DividendsEntity;
+import com.josecponce.stockdata.iexdataloader.iex.jpaentities.DividendsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

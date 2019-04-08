@@ -1,7 +1,7 @@
-package com.josecponce.stockdata.iexdataloader.batch;
+package com.josecponce.stockdata.iexdataloader.iex;
 
-import com.josecponce.stockdata.iexdataloader.batch.jpaentities.*;
-import com.josecponce.stockdata.iexdataloader.iextrading.IexClient;
+import com.josecponce.stockdata.iexdataloader.iex.jpaentities.*;
+import com.josecponce.stockdata.iexdataloader.iex.iextrading.IexClient;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.readers.SynchronizedIteratorItemReader;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableBatchProcessing
 @Slf4j
-public class BatchConfiguration {
+public class IexBatchConfiguration {
+    public static final String LOAD_IEX_DATA_JOB = "Load IEX data";
     private static final String LOAD_SYMBOL_DEPENDENT_DATA_FLOW = "Load Symbol Dependent Data";
-    private static final String LOAD_IEX_DATA_JOB = "Load IEX data";
     private static final String LOAD_EXCHANGE_SYMBOLS_STEP = "Load Exchange Symbols";
     private static final String LOAD_KEY_STATS_STEP = "Load Key Stats";
     private static final String LOAD_DIVIDENDS_STEP = "Load Dividends";
@@ -46,14 +46,14 @@ public class BatchConfiguration {
     private final ApiEntityConverter converter;
     private final TaskExecutor executor;
 
-    public BatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor) {
+    public IexBatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor) {
         this.jobBuilder = jobBuilder;
         this.client = client;
         this.converter = converter;
         this.executor = executor;
     }
 
-    @Bean
+    @Bean(LOAD_IEX_DATA_JOB)
     @Scope(scopeName = "prototype")
     public Job job(@Qualifier(LOAD_EXCHANGE_SYMBOLS_STEP) Step exchangeSymbols,
                    @Qualifier(LOAD_KEY_STATS_STEP) Step keyStats,
