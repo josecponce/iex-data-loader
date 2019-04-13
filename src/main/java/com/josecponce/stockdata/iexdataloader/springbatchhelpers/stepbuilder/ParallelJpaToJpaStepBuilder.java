@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -80,6 +81,11 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
         this.jpaWriter = jpaWriter;
     }
 
+    public ParallelJpaToJpaStepBuilder withModifiedReader(Function<JpaPagingItemReaderBuilder, ItemReader> buildFunction) {
+        ItemReader modifiedItemReader = buildFunction.apply(getBaseItemReader());
+        return withReader(modifiedItemReader);
+    }
+
     @SuppressWarnings("unchecked")
     public Step build() {
         Class[] types = processor == null || GenericTypeResolver.resolveTypeArguments(processor.getClass(), ItemProcessor.class) == null
@@ -92,8 +98,7 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
             throw new RuntimeException("The processor needs to be set as an anonymous inner class.");
         }
 
-        ItemReader baseReader = this.reader != null ? this.reader : new JpaPagingItemReaderBuilder().name(name + "Reader")
-                .entityManagerFactory(entityManagerFactory).saveState(false).pageSize(chunk)
+        ItemReader baseReader = this.reader != null ? this.reader : getBaseItemReader()
                 .queryString(String.format("SELECT item FROM %s item %s",
                         inComponentClass != null ? inComponentClass.getSimpleName() : types[0].getSimpleName(),
                         StringUtils.isEmpty(orderBy) ? "" : "ORDER BY " + orderBy)).build();
@@ -104,7 +109,7 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
                     private JpaPagingItemReader delegate = (JpaPagingItemReader) baseReader;
 
                     @Override
-                    public synchronized List read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+                    public synchronized List read() {
                         List<Object> batch = IntStream.range(0, chunk)
                                 .mapToObj(i -> {
                                     try {
@@ -155,5 +160,10 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
         return simpleStepBuilder.taskExecutor(executor).throttleLimit(concurrency)
                 .transactionAttribute(transactionAttributes)
                 .build();
+    }
+
+    private JpaPagingItemReaderBuilder getBaseItemReader() {
+        return new JpaPagingItemReaderBuilder().name(name + "Reader")
+                .entityManagerFactory(entityManagerFactory).saveState(false).pageSize(chunk);
     }
 }

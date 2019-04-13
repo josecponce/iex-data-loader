@@ -45,7 +45,7 @@ public class ScheduledBatchJobs {
         }
     }
 
-    @Scheduled(fixedDelayString = "${fixedDelayMs}")
+//    @Scheduled(fixedDelayString = "${fixedDelayMs}")
     public void treasuryJob()  throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         Job job = context.getBean(GovBatchConfiguration.LOAD_TREASURY_DATA_JOB, Job.class);
         long time = System.currentTimeMillis();

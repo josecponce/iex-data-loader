@@ -2,11 +2,14 @@ package com.josecponce.stockdata.iexdataloader.iex;
 
 import com.josecponce.stockdata.iexdataloader.iex.jpaentities.*;
 import com.josecponce.stockdata.iexdataloader.iex.iextrading.IexClient;
+import com.josecponce.stockdata.iexdataloader.iex.repositories.SplitRepository;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.readers.SynchronizedIteratorItemReader;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -24,6 +27,9 @@ import pl.zankowski.iextrading4j.api.stocks.BatchStocks;
 import pl.zankowski.iextrading4j.client.rest.request.refdata.SymbolsRequestBuilder;
 import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
 
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,17 +46,22 @@ public class IexBatchConfiguration {
     private static final String LOAD_DIVIDENDS_STEP = "Load Dividends";
     private static final String LOAD_SPLITS_STEP = "Load Splits";
     private static final String LOAD_CHART_DATA_STEP = "Load Chart data";
+    private static final String ADJUST_CHART_PRICES_FOR_SPLITS_STEP = "Adjust Chart Prices For Splits";
 
     private final JobBuilderFactory jobBuilder;
     private final IexClient client;
     private final ApiEntityConverter converter;
     private final TaskExecutor executor;
+    private final SplitRepository splitRepository;
 
-    public IexBatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor) {
+    private LocalDateTime jobStartTime;
+
+    public IexBatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor, SplitRepository splitRepository) {
         this.jobBuilder = jobBuilder;
         this.client = client;
         this.converter = converter;
         this.executor = executor;
+        this.splitRepository = splitRepository;
     }
 
     @Bean(LOAD_IEX_DATA_JOB)
@@ -59,10 +70,22 @@ public class IexBatchConfiguration {
                    @Qualifier(LOAD_KEY_STATS_STEP) Step keyStats,
                    @Qualifier(LOAD_DIVIDENDS_STEP) Step dividends,
                    @Qualifier(LOAD_SPLITS_STEP) Step splits,
-                   @Qualifier(LOAD_CHART_DATA_STEP) Step charts) {
+                   @Qualifier(LOAD_CHART_DATA_STEP) Step charts,
+                   @Qualifier(ADJUST_CHART_PRICES_FOR_SPLITS_STEP) Step adjustCharts) {
         return jobBuilder.get(LOAD_IEX_DATA_JOB)
                 .preventRestart()
                 .incrementer(new RunIdIncrementer())
+                .listener(new JobExecutionListener() {
+                    @Override
+                    public void beforeJob(JobExecution jobExecution) {
+                        jobStartTime = LocalDateTime.now();
+                    }
+
+                    @Override
+                    public void afterJob(JobExecution jobExecution) {
+                        jobStartTime = null;
+                    }
+                })
                 .start(new FlowBuilder<Flow>(LOAD_EXCHANGE_SYMBOLS_STEP).start(exchangeSymbols).end())
                 .next(new FlowBuilder<Flow>(LOAD_SYMBOL_DEPENDENT_DATA_FLOW)
                         .split(executor).add(
@@ -71,6 +94,7 @@ public class IexBatchConfiguration {
                                 new FlowBuilder<Flow>(LOAD_SPLITS_STEP).start(splits).end(),
                                 new FlowBuilder<Flow>(LOAD_CHART_DATA_STEP).start(charts).end()
                         ).end())
+                .next(new FlowBuilder<Flow>(ADJUST_CHART_PRICES_FOR_SPLITS_STEP).start(adjustCharts).end())
                 .end()
                 .build();
     }
@@ -97,7 +121,7 @@ public class IexBatchConfiguration {
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<KeyStatsEntity>>() {
                     @Override
-                    public List<KeyStatsEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                    public List<KeyStatsEntity> process(List<ExchangeSymbolEntity> symbols) {
                         val stats = client.requestBatch(getSymbols(symbols), BatchStocksType.KEY_STATS);
                         return stats.entrySet().stream().map(kv -> {
                             KeyStatsEntity stat = converter.convert(kv.getValue().getKeyStats(), KeyStatsEntity.class);
@@ -119,7 +143,7 @@ public class IexBatchConfiguration {
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<DividendsEntity>>() {
                     @Override
-                    public List<DividendsEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                    public List<DividendsEntity> process(List<ExchangeSymbolEntity> symbols) {
                         val dividends = client.requestBatch(getSymbols(symbols), BatchStocksType.DIVIDENDS);
                         return dividends.entrySet().stream().flatMap(kv ->
                                 kv.getValue().getDividends().stream().map(div -> converter.convert(div, DividendsEntity.class))
@@ -138,7 +162,7 @@ public class IexBatchConfiguration {
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<SplitEntity>>() {
                     @Override
-                    public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                    public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) {
                         Map<String, BatchStocks> splits = client.requestBatch(getSymbols(symbols), BatchStocksType.SPLITS);
                         return splits.entrySet().stream().flatMap(kv ->
                                 kv.getValue().getSplits().stream().map(split -> converter.convert(split, SplitEntity.class))
@@ -152,17 +176,52 @@ public class IexBatchConfiguration {
     @Scope(scopeName = "prototype")
     public Step loadChartData(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<ChartEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_CHART_DATA_STEP)
-                .withChunk(1)
-                .withConcurrency(15)
+                .withChunk(5)
+                .withConcurrency(20)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<ChartEntity>>() {
                     @Override
-                    public List<ChartEntity> process(List<ExchangeSymbolEntity> symbols) throws Exception {
+                    public List<ChartEntity> process(List<ExchangeSymbolEntity> symbols) {
                         return client.requestBatch(getSymbols(symbols), BatchStocksType.CHART)
                                 .entrySet().stream().flatMap(kv ->
                                         kv.getValue().getChart().stream().map(c -> converter.convert(c, ChartEntity.class))
-                                        .peek(c -> c.setSymbol(kv.getKey()))
+                                                .peek(c -> {
+                                                    c.setSymbol(kv.getKey());
+                                                    c.setDateDate(LocalDate.parse(c.getDate()));
+                                                })
                                 ).collect(Collectors.toList());
+                    }
+                })
+                .build();
+    }
+
+    @Bean(ADJUST_CHART_PRICES_FOR_SPLITS_STEP)
+    @Scope(scopeName = "prototype")
+    public Step adjustChartPricesForSplits(ParallelJpaToJpaStepBuilder<ChartEntity, ChartEntity> stepBuilder) {
+        return stepBuilder.withName(ADJUST_CHART_PRICES_FOR_SPLITS_STEP)
+                .withChunk(1000)
+                .withConcurrency(3)//depending on sort order so it has to be single threaded
+                .withOrderBy("symbol")
+                .withProcessor(new ItemProcessor<ChartEntity, ChartEntity>() {
+                    private ThreadLocal<String> splitsSymbol = new ThreadLocal<>();
+                    private ThreadLocal<List<SplitEntity>> splits = new ThreadLocal<>();
+
+                    @Override
+                    public ChartEntity process(ChartEntity item) {
+                        if (item.getLastUpdated().isAfter(jobStartTime)) {
+                            return null;//no need to update
+                        }
+                        if (splitsSymbol.get() == null || !splitsSymbol.get().equals(item.getSymbol())) {
+                            splits.set(splitRepository.findAllBySymbolAndCreatedAfter(item.getSymbol(), jobStartTime));
+                            splitsSymbol.set(item.getSymbol());
+                        }
+                        if (splits.get().isEmpty()) {
+                            return null;//no splits to apply
+                        }
+                        for (val split: splits.get()) {
+                            item.setClose(item.getClose().multiply(split.getToFactor()).divide(split.getForFactor(), RoundingMode.HALF_UP));
+                        }
+                        return item;
                     }
                 })
                 .build();

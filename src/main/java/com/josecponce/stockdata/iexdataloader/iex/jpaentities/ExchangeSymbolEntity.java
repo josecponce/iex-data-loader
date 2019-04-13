@@ -1,23 +1,24 @@
 package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
+import com.josecponce.stockdata.iexdataloader.jpaaudit.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
 import pl.zankowski.iextrading4j.api.refdata.SymbolType;
 
 import javax.persistence.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(schema = "iex", catalog = "iex")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExchangeSymbolEntity {
+public class ExchangeSymbolEntity extends Auditable {
     @Id
     private String symbol;
     private String name;
@@ -26,8 +27,6 @@ public class ExchangeSymbolEntity {
     @Enumerated(EnumType.STRING)
     private SymbolType type;
     private Long iexId;
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
 
     public String getSymbolEncoded() {
         try {

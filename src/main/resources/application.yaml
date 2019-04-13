@@ -19,10 +19,10 @@ spring:
 #    show-sql: true
 
 threadPoolSize: 20
-timeRange: 5y
+timeRange: 1m
 #don't go over 365 or data may start comming back in json instead of xml (unreadable)
 treasuryRangeDays: 10000
-fixedDelayMs: 30000
+fixedDelayMs: 3000000
 
 logging:
   level:

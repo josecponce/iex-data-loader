@@ -1,7 +1,9 @@
 package com.josecponce.stockdata.iexdataloader.gov.jpaentities;
 
+import com.josecponce.stockdata.iexdataloader.jpaaudit.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,22 +14,20 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(TreasuryYieldEntity.TreasuryYieldId.class)
 @Table(schema = "treasury", catalog = "treasury")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TreasuryYieldEntity {
+public class TreasuryYieldEntity extends Auditable {
     @Id
     private String date;
     @Id
     private String maturity;
     private Double yield;
     private Integer position;
-
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
 
     @Data
     @NoArgsConstructor

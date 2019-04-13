@@ -25,6 +25,10 @@ spec:
               value: root
             - name: FIXEDDELAYMS
               value: "129600000"
+            - name: TREASURYRANGEDAYS
+              value: "10000"
+            - name: TIMERANGE
+              value: "5y"
             - name: THREADPOOLSIZE
               value: "50"
             - name: SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE

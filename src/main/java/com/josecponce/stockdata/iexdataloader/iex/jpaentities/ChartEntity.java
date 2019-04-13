@@ -1,26 +1,29 @@
 package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
+import com.josecponce.stockdata.iexdataloader.jpaaudit.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(ChartEntity.ChartEntityId.class)
 @Table(schema = "iex", catalog = "iex")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChartEntity implements Serializable {
+public class ChartEntity extends Auditable {
     @Id
     private String symbol;
     @Id
     private String date;
+    private LocalDate dateDate;
     private BigDecimal open;
     private BigDecimal high;
     private BigDecimal low;
@@ -33,9 +36,6 @@ public class ChartEntity implements Serializable {
     private BigDecimal vwap;
     private String label;
     private BigDecimal changeOverTime;
-
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
 
     @Data
     @AllArgsConstructor

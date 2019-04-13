@@ -11,5 +11,6 @@ create table iex.dividends_entity (
   record_date   date,
   type          varchar(255),
   last_updated datetime,
+  created           datetime,
   primary key (symbol, ex_date)
 )

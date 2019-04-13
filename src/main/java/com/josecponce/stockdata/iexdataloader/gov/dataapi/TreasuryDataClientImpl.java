@@ -108,18 +108,18 @@ public class TreasuryDataClientImpl implements TreasuryDataClient {
 
     private Stream<TreasuryYieldEntity> createEntities(String date, Double[] yields) {
         return Stream.of(
-                new TreasuryYieldEntity(date, "1MONTH", yields[0], 1, null),
-                new TreasuryYieldEntity(date, "2MONTH", yields[1], 2, null),
-                new TreasuryYieldEntity(date, "3MONTH", yields[2], 3, null),
-                new TreasuryYieldEntity(date, "6MONTH", yields[3], 4, null),
-                new TreasuryYieldEntity(date, "1YEAR", yields[4], 5, null),
-                new TreasuryYieldEntity(date, "2YEAR", yields[5], 6, null),
-                new TreasuryYieldEntity(date, "3YEAR", yields[6], 7, null),
-                new TreasuryYieldEntity(date, "5YEAR", yields[7], 8, null),
-                new TreasuryYieldEntity(date, "7YEAR", yields[8], 9, null),
-                new TreasuryYieldEntity(date, "10YEAR", yields[9], 10, null),
-                new TreasuryYieldEntity(date, "20YEAR", yields[10], 11, null),
-                new TreasuryYieldEntity(date, "30YEAR", yields[11], 12, null)
+                new TreasuryYieldEntity(date, "1MONTH", yields[0], 1),
+                new TreasuryYieldEntity(date, "2MONTH", yields[1], 2),
+                new TreasuryYieldEntity(date, "3MONTH", yields[2], 3),
+                new TreasuryYieldEntity(date, "6MONTH", yields[3], 4),
+                new TreasuryYieldEntity(date, "1YEAR", yields[4], 5),
+                new TreasuryYieldEntity(date, "2YEAR", yields[5], 6),
+                new TreasuryYieldEntity(date, "3YEAR", yields[6], 7),
+                new TreasuryYieldEntity(date, "5YEAR", yields[7], 8),
+                new TreasuryYieldEntity(date, "7YEAR", yields[8], 9),
+                new TreasuryYieldEntity(date, "10YEAR", yields[9], 10),
+                new TreasuryYieldEntity(date, "20YEAR", yields[10], 11),
+                new TreasuryYieldEntity(date, "30YEAR", yields[11], 12)
         );
     }
 }

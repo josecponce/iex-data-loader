@@ -7,5 +7,6 @@ create table iex.exchange_symbol_entity (
   symbol  varchar(255),
   type    varchar(255),
   last_updated datetime,
+  created           datetime,
   primary key (symbol)
 )

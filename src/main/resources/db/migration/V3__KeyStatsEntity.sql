@@ -51,5 +51,6 @@ create table iex.key_stats_entity (
   year5change_percent decimal(19,2),
   ytd_change_percent decimal(19,2),
   last_updated datetime,
+  created           datetime,
   primary key (symbol)
 )

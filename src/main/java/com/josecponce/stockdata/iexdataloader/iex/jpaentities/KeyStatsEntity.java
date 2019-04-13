@@ -1,7 +1,9 @@
 package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
+import com.josecponce.stockdata.iexdataloader.jpaaudit.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,12 +15,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(schema = "iex", catalog = "iex")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class KeyStatsEntity {
+public class KeyStatsEntity extends Auditable {
     @Id
     private String symbol;
 
@@ -72,7 +75,4 @@ public class KeyStatsEntity {
     private BigDecimal month1ChangePercent;
     private BigDecimal day5ChangePercent;
     private BigDecimal day30ChangePercent;
-
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
 }

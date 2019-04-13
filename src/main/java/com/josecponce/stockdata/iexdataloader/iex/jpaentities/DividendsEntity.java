@@ -1,7 +1,9 @@
 package com.josecponce.stockdata.iexdataloader.iex.jpaentities;
 
+import com.josecponce.stockdata.iexdataloader.jpaaudit.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 import pl.zankowski.iextrading4j.api.stocks.DividendQualification;
@@ -13,13 +15,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(DividendsEntity.DividendsEntityId.class)
 @Table(schema = "iex", catalog = "iex")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DividendsEntity implements Serializable {
+public class DividendsEntity extends Auditable {
     @Id
     private String symbol;
     @Id
@@ -34,8 +37,6 @@ public class DividendsEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     private DividendQualification qualified;
     private String indicated;
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
 
     @Data
     @NoArgsConstructor

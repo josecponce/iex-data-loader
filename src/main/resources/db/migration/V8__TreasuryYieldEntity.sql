@@ -4,5 +4,6 @@ create table treasury.treasury_yield_entity (
     yield double precision,
     position int,
     last_updated     datetime,
+    created           datetime,
     primary key (date, maturity)
 )
