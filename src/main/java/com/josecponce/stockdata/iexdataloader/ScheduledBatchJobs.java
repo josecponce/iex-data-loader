@@ -33,7 +33,7 @@ public class ScheduledBatchJobs {
         this.client = client;
     }
 
-//    @Scheduled(fixedDelayString = "${fixedDelayMs}")
+    @Scheduled(fixedDelayString = "${fixedDelayMs}")
     public void iexJob() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         try {
             Job job = context.getBean(IexBatchConfiguration.LOAD_IEX_DATA_JOB, Job.class);
