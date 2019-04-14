@@ -12,9 +12,10 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @IdClass(TreasuryYieldEntity.TreasuryYieldId.class)
 @Table(schema = "treasury", catalog = "treasury")
@@ -26,7 +27,7 @@ public class TreasuryYieldEntity extends Auditable {
     private String date;
     @Id
     private String maturity;
-    private Double yield;
+    private BigDecimal yield;
     private Integer position;
 
     @Data

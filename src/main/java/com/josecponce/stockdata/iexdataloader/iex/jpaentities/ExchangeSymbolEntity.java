@@ -12,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.LocalDate;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(schema = "iex", catalog = "iex")
 @Data
@@ -36,4 +36,6 @@ public class ExchangeSymbolEntity extends Auditable {
         }
         return null;
     }
+
+
 }

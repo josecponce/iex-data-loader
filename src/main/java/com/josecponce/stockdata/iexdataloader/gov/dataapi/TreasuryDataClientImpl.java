@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -108,18 +109,18 @@ public class TreasuryDataClientImpl implements TreasuryDataClient {
 
     private Stream<TreasuryYieldEntity> createEntities(String date, Double[] yields) {
         return Stream.of(
-                new TreasuryYieldEntity(date, "1MONTH", yields[0], 1),
-                new TreasuryYieldEntity(date, "2MONTH", yields[1], 2),
-                new TreasuryYieldEntity(date, "3MONTH", yields[2], 3),
-                new TreasuryYieldEntity(date, "6MONTH", yields[3], 4),
-                new TreasuryYieldEntity(date, "1YEAR", yields[4], 5),
-                new TreasuryYieldEntity(date, "2YEAR", yields[5], 6),
-                new TreasuryYieldEntity(date, "3YEAR", yields[6], 7),
-                new TreasuryYieldEntity(date, "5YEAR", yields[7], 8),
-                new TreasuryYieldEntity(date, "7YEAR", yields[8], 9),
-                new TreasuryYieldEntity(date, "10YEAR", yields[9], 10),
-                new TreasuryYieldEntity(date, "20YEAR", yields[10], 11),
-                new TreasuryYieldEntity(date, "30YEAR", yields[11], 12)
+                new TreasuryYieldEntity(date, "1MONTH", BigDecimal.valueOf(yields[0]), 1),
+                new TreasuryYieldEntity(date, "2MONTH", BigDecimal.valueOf(yields[1]), 2),
+                new TreasuryYieldEntity(date, "3MONTH", BigDecimal.valueOf(yields[2]), 3),
+                new TreasuryYieldEntity(date, "6MONTH", BigDecimal.valueOf(yields[3]), 4),
+                new TreasuryYieldEntity(date, "1YEAR", BigDecimal.valueOf(yields[4]), 5),
+                new TreasuryYieldEntity(date, "2YEAR", BigDecimal.valueOf(yields[5]), 6),
+                new TreasuryYieldEntity(date, "3YEAR", BigDecimal.valueOf(yields[6]), 7),
+                new TreasuryYieldEntity(date, "5YEAR", BigDecimal.valueOf(yields[7]), 8),
+                new TreasuryYieldEntity(date, "7YEAR", BigDecimal.valueOf(yields[8]), 9),
+                new TreasuryYieldEntity(date, "10YEAR", BigDecimal.valueOf(yields[9]), 10),
+                new TreasuryYieldEntity(date, "20YEAR", BigDecimal.valueOf(yields[10]), 11),
+                new TreasuryYieldEntity(date, "30YEAR", BigDecimal.valueOf(yields[11]), 12)
         );
     }
 }

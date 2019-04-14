@@ -14,8 +14,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(DividendsEntity.DividendsEntityId.class)
 @Table(schema = "iex", catalog = "iex")
@@ -44,5 +44,27 @@ public class DividendsEntity extends Auditable {
     public static class DividendsEntityId implements Serializable {
         private String symbol;
         private LocalDate exDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DividendsEntity that = (DividendsEntity) o;
+        return Objects.equals(symbol, that.symbol) &&
+                Objects.equals(exDate, that.exDate) &&
+                Objects.equals(paymentDate, that.paymentDate) &&
+                Objects.equals(recordDate, that.recordDate) &&
+                Objects.equals(declaredDate, that.declaredDate) &&
+                Objects.equals(strip(amount), strip(that.amount)) &&
+                Objects.equals(flag, that.flag) &&
+                type == that.type &&
+                qualified == that.qualified &&
+                Objects.equals(indicated, that.indicated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), symbol, exDate, paymentDate, recordDate, declaredDate, amount, flag, type, qualified, indicated);
     }
 }

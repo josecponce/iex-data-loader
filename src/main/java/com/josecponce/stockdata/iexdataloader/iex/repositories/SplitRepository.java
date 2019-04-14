@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface SplitRepository extends JpaRepository<SplitEntity, SplitEntity.SplitEntityId> {
     List<SplitEntity> findAllBySymbolAndExDateBetween(String symbol, LocalDate exDateFrom, LocalDate exDateTo);
     Optional<SplitEntity> findFirstBySymbolOrderByExDateAsc(String symbol);
-    List<SplitEntity> findAllBySymbolAndCreatedAfter(String symbol, LocalDateTime createdAfter);
+    List<SplitEntity> findAllBySymbolAndLastUpdatedAfter(String symbol, LocalDateTime lastUpdatedAfter);
 }

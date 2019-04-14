@@ -4,10 +4,9 @@ create table iex.split_entity (
   declared_date     date,
   record_date       date,
   payment_date      date,
-  ratio             decimal(19,2),
-  to_factor         decimal(19,2),
-  for_factor        decimal(19,2),
+  ratio             decimal(40,20),
+  to_factor         decimal(40,20),
+  for_factor        decimal(40,20),
   last_updated      datetime,
-  created           datetime,
   primary key (symbol, ex_date)
 )

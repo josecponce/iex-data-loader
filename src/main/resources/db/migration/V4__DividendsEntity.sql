@@ -1,6 +1,6 @@
 create table iex.dividends_entity (
 --   id            bigint IDENTITY(1,1) not null,
-  amount        decimal(19, 3),
+  amount        decimal(40,20),
   symbol varchar(255),
   declared_date date,
   ex_date       date,
@@ -11,6 +11,5 @@ create table iex.dividends_entity (
   record_date   date,
   type          varchar(255),
   last_updated datetime,
-  created           datetime,
   primary key (symbol, ex_date)
 )

@@ -1,8 +1,8 @@
 package com.josecponce.stockdata.iexdataloader.iex;
 
-import com.josecponce.stockdata.iexdataloader.iex.jpaentities.*;
 import com.josecponce.stockdata.iexdataloader.iex.iextrading.IexClient;
-import com.josecponce.stockdata.iexdataloader.iex.repositories.SplitRepository;
+import com.josecponce.stockdata.iexdataloader.iex.jpaentities.*;
+import com.josecponce.stockdata.iexdataloader.iex.repositories.*;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.readers.SynchronizedIteratorItemReader;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +30,10 @@ import pl.zankowski.iextrading4j.client.rest.request.stocks.BatchStocksType;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -52,16 +54,25 @@ public class IexBatchConfiguration {
     private final IexClient client;
     private final ApiEntityConverter converter;
     private final TaskExecutor executor;
+
     private final SplitRepository splitRepository;
+    private final ExchangeSymbolRepository symbolRepository;
+    private final KeyStatsRepository keyStatsRepository;
+    private final DividendsRepository dividendsRepository;
+    private final ChartRepository chartRepository;
 
     private LocalDateTime jobStartTime;
 
-    public IexBatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor, SplitRepository splitRepository) {
+    public IexBatchConfiguration(JobBuilderFactory jobBuilder, IexClient client, ApiEntityConverter converter, TaskExecutor executor, SplitRepository splitRepository, ExchangeSymbolRepository symbolRepository, KeyStatsRepository keyStatsRepository, DividendsRepository dividendsRepository, ChartRepository chartRepository) {
         this.jobBuilder = jobBuilder;
         this.client = client;
         this.converter = converter;
         this.executor = executor;
         this.splitRepository = splitRepository;
+        this.symbolRepository = symbolRepository;
+        this.keyStatsRepository = keyStatsRepository;
+        this.dividendsRepository = dividendsRepository;
+        this.chartRepository = chartRepository;
     }
 
     @Bean(LOAD_IEX_DATA_JOB)
@@ -89,10 +100,10 @@ public class IexBatchConfiguration {
                 .start(new FlowBuilder<Flow>(LOAD_EXCHANGE_SYMBOLS_STEP).start(exchangeSymbols).end())
                 .next(new FlowBuilder<Flow>(LOAD_SYMBOL_DEPENDENT_DATA_FLOW)
                         .split(executor).add(
-                                new FlowBuilder<Flow>(LOAD_KEY_STATS_STEP).start(keyStats).end(),
-                                new FlowBuilder<Flow>(LOAD_DIVIDENDS_STEP).start(dividends).end(),
-                                new FlowBuilder<Flow>(LOAD_SPLITS_STEP).start(splits).end(),
-                                new FlowBuilder<Flow>(LOAD_CHART_DATA_STEP).start(charts).end()
+                                new FlowBuilder<Flow>(LOAD_KEY_STATS_STEP).start(keyStats).end()
+                                ,new FlowBuilder<Flow>(LOAD_DIVIDENDS_STEP).start(dividends).end()
+                                ,new FlowBuilder<Flow>(LOAD_SPLITS_STEP).start(splits).end()
+                                ,new FlowBuilder<Flow>(LOAD_CHART_DATA_STEP).start(charts).end()
                         ).end())
                 .next(new FlowBuilder<Flow>(ADJUST_CHART_PRICES_FOR_SPLITS_STEP).start(adjustCharts).end())
                 .end()
@@ -102,12 +113,17 @@ public class IexBatchConfiguration {
     @Bean(LOAD_EXCHANGE_SYMBOLS_STEP)
     @Scope(scopeName = "prototype")
     public Step loadExchangeSymbols(ParallelJpaToJpaStepBuilder<ExchangeSymbol, ExchangeSymbolEntity> stepBuilder) {
+        Iterator<ExchangeSymbol> symbolIterator = client.request(new SymbolsRequestBuilder().build()).iterator();
         return stepBuilder.withName(LOAD_EXCHANGE_SYMBOLS_STEP)
                 .withChunk(100)
                 .withConcurrency(20)
                 .withInClass(ExchangeSymbol.class)
-                .withReader(new SynchronizedIteratorItemReader<>(client.request(new SymbolsRequestBuilder().build()).iterator()))
-                .withProcessor(symbol -> converter.convert(symbol, ExchangeSymbolEntity.class))
+                .withReader(new SynchronizedIteratorItemReader<>(symbolIterator))
+                .withProcessor(symbol -> {
+                    val current = symbolRepository.findById(symbol.getSymbol());
+                    val result = converter.convert(symbol, ExchangeSymbolEntity.class);
+                    return current.isPresent() && current.get().equals(result) ? null : result;
+                })
                 .withOutClass(ExchangeSymbolEntity.class)
                 .build();
     }
@@ -117,7 +133,7 @@ public class IexBatchConfiguration {
     public Step loadKeyStats(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<KeyStatsEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_KEY_STATS_STEP)
                 .withChunk(100)
-                .withConcurrency(1)
+                .withConcurrency(5)
                 .withInComponentClass(ExchangeSymbolEntity.class)
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<KeyStatsEntity>>() {
                     @Override
@@ -137,7 +153,6 @@ public class IexBatchConfiguration {
     @Scope(scopeName = "prototype")
     public Step loadDividends(ParallelJpaToJpaStepBuilder<List<ExchangeSymbolEntity>, List<DividendsEntity>> stepBuilder) {
         return stepBuilder.withName(LOAD_DIVIDENDS_STEP)
-                //4:47 at 50/10
                 .withChunk(100)
                 .withConcurrency(5)
                 .withInComponentClass(ExchangeSymbolEntity.class)
@@ -146,8 +161,13 @@ public class IexBatchConfiguration {
                     public List<DividendsEntity> process(List<ExchangeSymbolEntity> symbols) {
                         val dividends = client.requestBatch(getSymbols(symbols), BatchStocksType.DIVIDENDS);
                         return dividends.entrySet().stream().flatMap(kv ->
-                                kv.getValue().getDividends().stream().map(div -> converter.convert(div, DividendsEntity.class))
-                                        .peek(div -> div.setSymbol(kv.getKey()))).collect(Collectors.toList());
+                                kv.getValue().getDividends().stream().map(div -> {
+                                    val result = converter.convert(div, DividendsEntity.class);
+                                    result.setSymbol(kv.getKey());
+                                    val current = dividendsRepository.findById(
+                                            new DividendsEntity.DividendsEntityId(kv.getKey(), div.getExDate()));
+                                    return current.isPresent() && current.get().equals(result) ? null : result;
+                                }).filter(Objects::nonNull)).collect(Collectors.toList());
                     }
                 })
                 .build();
@@ -165,8 +185,13 @@ public class IexBatchConfiguration {
                     public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) {
                         Map<String, BatchStocks> splits = client.requestBatch(getSymbols(symbols), BatchStocksType.SPLITS);
                         return splits.entrySet().stream().flatMap(kv ->
-                                kv.getValue().getSplits().stream().map(split -> converter.convert(split, SplitEntity.class))
-                                        .peek(split -> split.setSymbol(kv.getKey()))).collect(Collectors.toList());
+                                kv.getValue().getSplits().stream().map(split -> {
+                                    val result = converter.convert(split, SplitEntity.class);
+                                    result.setSymbol(kv.getKey());
+                                    val current = splitRepository.findById(
+                                            new SplitEntity.SplitEntityId(kv.getKey(), result.getExDate()));
+                                    return current.isPresent() && current.get().equals(result) ? null : result;
+                                }).filter(Objects::nonNull)).collect(Collectors.toList());
                     }
                 })
                 .build();
@@ -184,12 +209,14 @@ public class IexBatchConfiguration {
                     public List<ChartEntity> process(List<ExchangeSymbolEntity> symbols) {
                         return client.requestBatch(getSymbols(symbols), BatchStocksType.CHART)
                                 .entrySet().stream().flatMap(kv ->
-                                        kv.getValue().getChart().stream().map(c -> converter.convert(c, ChartEntity.class))
-                                                .peek(c -> {
-                                                    c.setSymbol(kv.getKey());
-                                                    c.setDateDate(LocalDate.parse(c.getDate()));
-                                                })
-                                ).collect(Collectors.toList());
+                                        kv.getValue().getChart().stream().map(c -> {
+                                            val result = converter.convert(c, ChartEntity.class);
+                                            result.setSymbol(kv.getKey());
+                                            result.setDateDate(LocalDate.parse(c.getDate()));
+                                            val current = chartRepository.findById(
+                                                    new ChartEntity.ChartEntityId(kv.getKey(), result.getDate()));
+                                            return current.isPresent() && current.get().equals(result) ? null : result;
+                                        }).filter(Objects::nonNull)).collect(Collectors.toList());
                     }
                 })
                 .build();
@@ -212,13 +239,13 @@ public class IexBatchConfiguration {
                             return null;//no need to update
                         }
                         if (splitsSymbol.get() == null || !splitsSymbol.get().equals(item.getSymbol())) {
-                            splits.set(splitRepository.findAllBySymbolAndCreatedAfter(item.getSymbol(), jobStartTime));
+                            splits.set(splitRepository.findAllBySymbolAndLastUpdatedAfter(item.getSymbol(), jobStartTime));
                             splitsSymbol.set(item.getSymbol());
                         }
                         if (splits.get().isEmpty()) {
                             return null;//no splits to apply
                         }
-                        for (val split: splits.get()) {
+                        for (val split : splits.get()) {
                             item.setClose(item.getClose().multiply(split.getToFactor()).divide(split.getForFactor(), RoundingMode.HALF_UP));
                         }
                         return item;

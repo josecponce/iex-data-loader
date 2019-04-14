@@ -18,8 +18,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @IdClass(SplitEntity.SplitEntityId.class)
 @Table(schema = "iex", catalog = "iex")
@@ -45,5 +45,25 @@ public class SplitEntity extends Auditable {
     public static class SplitEntityId implements Serializable {
         private String symbol;
         private LocalDate exDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SplitEntity that = (SplitEntity) o;
+        return Objects.equals(symbol, that.symbol) &&
+                Objects.equals(exDate, that.exDate) &&
+                Objects.equals(declaredDate, that.declaredDate) &&
+                Objects.equals(recordDate, that.recordDate) &&
+                Objects.equals(paymentDate, that.paymentDate) &&
+                Objects.equals(strip(ratio), strip(that.ratio)) &&
+                Objects.equals(strip(toFactor), strip(that.toFactor)) &&
+                Objects.equals(strip(forFactor), strip(that.forFactor));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), symbol, exDate, declaredDate, recordDate, paymentDate, ratio, toFactor, forFactor);
     }
 }
