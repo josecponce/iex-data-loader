@@ -26,7 +26,7 @@ spec:
             - name: FIXEDDELAYMS
               value: "129600000"
             - name: TREASURYRANGEDAYS
-              value: "10000"
+              value: "100000"
             - name: TIMERANGE
               value: "5y"
             - name: THREADPOOLSIZE

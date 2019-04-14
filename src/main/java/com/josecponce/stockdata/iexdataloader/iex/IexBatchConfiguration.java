@@ -227,7 +227,7 @@ public class IexBatchConfiguration {
     public Step adjustChartPricesForSplits(ParallelJpaToJpaStepBuilder<ChartEntity, ChartEntity> stepBuilder) {
         return stepBuilder.withName(ADJUST_CHART_PRICES_FOR_SPLITS_STEP)
                 .withChunk(1000)
-                .withConcurrency(3)//depending on sort order so it has to be single threaded
+                .withConcurrency(50)//depending on sort order so it has to be single threaded
                 .withOrderBy("symbol")
                 .withProcessor(new ItemProcessor<ChartEntity, ChartEntity>() {
                     private ThreadLocal<String> splitsSymbol = new ThreadLocal<>();
