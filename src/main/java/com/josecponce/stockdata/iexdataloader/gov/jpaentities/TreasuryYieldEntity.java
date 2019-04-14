@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @IdClass(TreasuryYieldEntity.TreasuryYieldId.class)
-@Table(schema = "treasury", catalog = "treasury")
+@Table(schema = "iex", catalog = "iex")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
