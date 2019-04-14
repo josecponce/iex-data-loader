@@ -23,9 +23,8 @@ import java.util.stream.Stream;
 @Service
 @Slf4j
 public class TreasuryDataClientImpl implements TreasuryDataClient {
-    public static final String ROOT_URI = "https://data.treasury.gov";
-    public static final String FILTER_DATE_FORMAT = "NEW_DATE ge DateTime'%s' and NEW_DATE le DateTime'%s'";
-    //            "day(NEW_DATE) ge %d and month(NEW_DATE) ge %d and year(NEW_DATE) ge %d and day(NEW_DATE) le %d and month(NEW_DATE) le %d and year(NEW_DATE) le %d";
+    private static final String ROOT_URI = "https://data.treasury.gov";
+    private static final String FILTER_DATE_FORMAT = "NEW_DATE ge DateTime'%s' and NEW_DATE le DateTime'%s'";
     private final RestTemplate client;
 
     public TreasuryDataClientImpl(RestTemplateBuilder templateBuilder) {
@@ -109,18 +108,18 @@ public class TreasuryDataClientImpl implements TreasuryDataClient {
 
     private Stream<TreasuryYieldEntity> createEntities(String date, Double[] yields) {
         return Stream.of(
-                new TreasuryYieldEntity(date, "1MONTH", BigDecimal.valueOf(yields[0]), 1),
-                new TreasuryYieldEntity(date, "2MONTH", BigDecimal.valueOf(yields[1]), 2),
-                new TreasuryYieldEntity(date, "3MONTH", BigDecimal.valueOf(yields[2]), 3),
-                new TreasuryYieldEntity(date, "6MONTH", BigDecimal.valueOf(yields[3]), 4),
-                new TreasuryYieldEntity(date, "1YEAR", BigDecimal.valueOf(yields[4]), 5),
-                new TreasuryYieldEntity(date, "2YEAR", BigDecimal.valueOf(yields[5]), 6),
-                new TreasuryYieldEntity(date, "3YEAR", BigDecimal.valueOf(yields[6]), 7),
-                new TreasuryYieldEntity(date, "5YEAR", BigDecimal.valueOf(yields[7]), 8),
-                new TreasuryYieldEntity(date, "7YEAR", BigDecimal.valueOf(yields[8]), 9),
-                new TreasuryYieldEntity(date, "10YEAR", BigDecimal.valueOf(yields[9]), 10),
-                new TreasuryYieldEntity(date, "20YEAR", BigDecimal.valueOf(yields[10]), 11),
-                new TreasuryYieldEntity(date, "30YEAR", BigDecimal.valueOf(yields[11]), 12)
+                new TreasuryYieldEntity(date, "1MONTH", yields[0] == null ? null : BigDecimal.valueOf(yields[0]), 1),
+                new TreasuryYieldEntity(date, "2MONTH", yields[1] == null ? null : BigDecimal.valueOf(yields[1]), 2),
+                new TreasuryYieldEntity(date, "3MONTH", yields[2] == null ? null : BigDecimal.valueOf(yields[2]), 3),
+                new TreasuryYieldEntity(date, "6MONTH", yields[3] == null ? null : BigDecimal.valueOf(yields[3]), 4),
+                new TreasuryYieldEntity(date, "1YEAR", yields[4] == null ? null : BigDecimal.valueOf(yields[4]), 5),
+                new TreasuryYieldEntity(date, "2YEAR", yields[5] == null ? null : BigDecimal.valueOf(yields[5]), 6),
+                new TreasuryYieldEntity(date, "3YEAR", yields[6] == null ? null : BigDecimal.valueOf(yields[6]), 7),
+                new TreasuryYieldEntity(date, "5YEAR", yields[7] == null ? null : BigDecimal.valueOf(yields[7]), 8),
+                new TreasuryYieldEntity(date, "7YEAR", yields[8] == null ? null : BigDecimal.valueOf(yields[8]), 9),
+                new TreasuryYieldEntity(date, "10YEAR", yields[9] == null ? null : BigDecimal.valueOf(yields[9]), 10),
+                new TreasuryYieldEntity(date, "20YEAR", yields[10] == null ? null : BigDecimal.valueOf(yields[10]), 11),
+                new TreasuryYieldEntity(date, "30YEAR", yields[11] == null ? null : BigDecimal.valueOf(yields[11]), 12)
         );
     }
 }
