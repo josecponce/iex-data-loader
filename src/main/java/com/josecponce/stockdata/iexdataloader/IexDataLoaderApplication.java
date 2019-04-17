@@ -14,14 +14,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class IexDataLoaderApplication {
 
     public static void main(String[] args) {
-        new SpringApplicationBuilder(IexDataLoaderApplication.class).web(WebApplicationType.NONE)
+        new SpringApplicationBuilder(IexDataLoaderApplication.class).web(WebApplicationType.SERVLET)
                 .run(args);
     }
 
     @Bean
     public TaskScheduler scheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(2);
+        threadPoolTaskScheduler.setPoolSize(3);
         return threadPoolTaskScheduler;
     }
 }

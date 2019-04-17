@@ -20,9 +20,9 @@ spring:
 
 threadPoolSize: 20
 timeRange: 1m
-#don't go over 365 or data may start comming back in json instead of xml (unreadable)
 treasuryRangeDays: 10000
 fixedDelayMs: 3000000
+alphaVantageApiKey: IJ9OGPU6TTJ4LDHX
 
 logging:
   level:
