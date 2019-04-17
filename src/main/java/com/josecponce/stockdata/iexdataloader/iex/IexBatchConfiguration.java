@@ -160,7 +160,7 @@ public class IexBatchConfiguration {
                     @Override
                     public List<DividendsEntity> process(List<ExchangeSymbolEntity> symbols) {
                         val dividends = client.requestBatch(getSymbols(symbols), BatchStocksType.DIVIDENDS);
-                        return dividends.entrySet().stream().flatMap(kv ->
+                        List<DividendsEntity> newDividends = dividends.entrySet().stream().flatMap(kv ->
                                 kv.getValue().getDividends().stream().map(div -> {
                                     val result = converter.convert(div, DividendsEntity.class);
                                     result.setSymbol(kv.getKey());
@@ -168,6 +168,7 @@ public class IexBatchConfiguration {
                                             new DividendsEntity.DividendsEntityId(kv.getKey(), div.getExDate()));
                                     return current.isPresent() && current.get().equals(result) ? null : result;
                                 }).filter(Objects::nonNull)).collect(Collectors.toList());
+                        return newDividends.isEmpty() ? null : newDividends;
                     }
                 })
                 .build();
@@ -184,7 +185,7 @@ public class IexBatchConfiguration {
                     @Override
                     public List<SplitEntity> process(List<ExchangeSymbolEntity> symbols) {
                         Map<String, BatchStocks> splits = client.requestBatch(getSymbols(symbols), BatchStocksType.SPLITS);
-                        return splits.entrySet().stream().flatMap(kv ->
+                        List<SplitEntity> newSplits = splits.entrySet().stream().flatMap(kv ->
                                 kv.getValue().getSplits().stream().map(split -> {
                                     val result = converter.convert(split, SplitEntity.class);
                                     result.setSymbol(kv.getKey());
@@ -192,6 +193,7 @@ public class IexBatchConfiguration {
                                             new SplitEntity.SplitEntityId(kv.getKey(), result.getExDate()));
                                     return current.isPresent() && current.get().equals(result) ? null : result;
                                 }).filter(Objects::nonNull)).collect(Collectors.toList());
+                        return newSplits.isEmpty() ? null : newSplits;
                     }
                 })
                 .build();
@@ -207,7 +209,7 @@ public class IexBatchConfiguration {
                 .withProcessor(new ItemProcessor<List<ExchangeSymbolEntity>, List<ChartEntity>>() {
                     @Override
                     public List<ChartEntity> process(List<ExchangeSymbolEntity> symbols) {
-                        return client.requestBatch(getSymbols(symbols), BatchStocksType.CHART)
+                        List<ChartEntity> newCharts = client.requestBatch(getSymbols(symbols), BatchStocksType.CHART)
                                 .entrySet().stream().flatMap(kv ->
                                         kv.getValue().getChart().stream().map(c -> {
                                             val result = converter.convert(c, ChartEntity.class);
@@ -217,6 +219,7 @@ public class IexBatchConfiguration {
                                                     new ChartEntity.ChartEntityId(kv.getKey(), result.getDate()));
                                             return current.isPresent() && current.get().equals(result) ? null : result;
                                         }).filter(Objects::nonNull)).collect(Collectors.toList());
+                        return newCharts.isEmpty() ? null : newCharts;
                     }
                 })
                 .build();

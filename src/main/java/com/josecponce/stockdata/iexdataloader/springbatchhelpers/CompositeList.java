@@ -2,17 +2,14 @@ package com.josecponce.stockdata.iexdataloader.springbatchhelpers;
 
 import org.apache.commons.collections.collection.CompositeCollection;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 public class CompositeList implements List {
     private final CompositeCollection list;
 
     public CompositeList(List<List> lists) {
         CompositeCollection list = new CompositeCollection();
-        lists.forEach(list::addComposited);
+        lists.stream().filter(Objects::nonNull).forEach(list::addComposited);
         this.list = list;
     }
 
