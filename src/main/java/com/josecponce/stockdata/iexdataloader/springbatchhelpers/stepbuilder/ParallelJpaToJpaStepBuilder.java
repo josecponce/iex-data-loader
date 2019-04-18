@@ -25,6 +25,7 @@ import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -141,7 +142,9 @@ public class ParallelJpaToJpaStepBuilder<In, Out> {
                 .transactionManager(transactionManager)
                 .chunk(reader == baseReader ? chunk : 1)
                 .faultTolerant()
-                .retry(LockAcquisitionException.class).retryLimit(5)
+                .retry(LockAcquisitionException.class)
+                .retry(PersistenceException.class)
+                .retryLimit(5)
                 .processorNonTransactional();
         for (val throwable : skip) {
             intermediateBuilder = intermediateBuilder.skip(throwable).skipLimit(1000);
