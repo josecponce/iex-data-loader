@@ -30,7 +30,7 @@ spec:
             - name: TIMERANGE
               value: "5y"
             - name: THREADPOOLSIZE
-              value: "50"
+              value: "60"
             - name: SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE
               value: "50"
             - name: DATABASE_PASSWORD
