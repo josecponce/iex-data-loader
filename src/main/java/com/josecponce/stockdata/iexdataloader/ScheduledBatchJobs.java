@@ -60,6 +60,7 @@ public class ScheduledBatchJobs {
     private void runJob(String jobBeanName, String logFormat) {
         synchronized (this) {
             if (runningJobs.contains(jobBeanName)) {
+                log.warn("Attempted to start task '{}' but it already seemed to be running so it won't be kicked off again.", jobBeanName);
                 return;//this job is already running
             } else {
                 runningJobs.add(jobBeanName);
