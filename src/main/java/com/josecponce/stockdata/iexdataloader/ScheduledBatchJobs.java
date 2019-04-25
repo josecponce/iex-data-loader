@@ -70,11 +70,12 @@ public class ScheduledBatchJobs {
         try {
             JobExecution execution = jobLauncher.run(job, parameters.getNextJobParameters(job).toJobParameters());
             log.info(logFormat, (System.currentTimeMillis() - time) / 1000, execution.getExitStatus());
-        } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+        } catch (Exception e) {
             log.error(String.format("Unexpected error when attempting to run batch job '%s'", jobBeanName), e);
-        }
-        synchronized (this) {
-            runningJobs.remove(jobBeanName);
+        } finally {
+            synchronized (this) {
+                runningJobs.remove(jobBeanName);
+            }
         }
     }
 }
