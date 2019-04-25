@@ -31,7 +31,6 @@ spring:
 threadPoolSize: 20
 timeRange: 1m
 treasuryRangeDays: 10000
-fixedDelayMs: 3000000
 alphaVantageApiKey: IJ9OGPU6TTJ4LDHX
 
 logging:

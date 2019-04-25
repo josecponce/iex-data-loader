@@ -38,7 +38,7 @@ public class ScheduledBatchJobs {
         this.client = client;
     }
 
-    @Scheduled(fixedRateString = "${fixedDelayMs}")
+    @Scheduled(cron = "0 0 4 * * ?")
     public void iexJob() {
         try {
             runJob(IexBatchConfiguration.LOAD_IEX_DATA_JOB, "IEX job execution finished in {}s with exit status {}");
@@ -47,12 +47,12 @@ public class ScheduledBatchJobs {
         }
     }
 
-    @Scheduled(fixedRateString = "${fixedDelayMs}")
+    @Scheduled(cron = "0 0 4 * * ?")
     public void treasuryJob() {
         runJob(GovBatchConfiguration.LOAD_TREASURY_DATA_JOB, "Treasury yields job execution finished in {}s with exit status {}");
     }
 
-    @Scheduled(fixedRateString = "${fixedDelayMs}")
+    @Scheduled(cron = "0 0 4 * * ?")
     public void alphaVantageJob() {
         runJob(AlphaVantageBatchConfiguration.LOAD_ALPHA_VANTAGE_STOCK_DATA_JOB, "Alpha Vantage job execution finished in {}s with exit status {}");
     }

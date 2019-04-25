@@ -23,8 +23,6 @@ spec:
               value: iex-mysql #this has to be created already
             - name: DATABASE_USERNAME
               value: root
-            - name: FIXEDDELAYMS
-              value: "86400000"
             - name: TREASURYRANGEDAYS
               value: "100000"
             - name: TIMERANGE
