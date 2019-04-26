@@ -2,10 +2,12 @@ package com.josecponce.stockdata.iexdataloader.alphavantage;
 
 import com.josecponce.stockdata.iexdataloader.alphavantage.api.AlphaVantageClient;
 import com.josecponce.stockdata.iexdataloader.alphavantage.api.OutputSize;
+import com.josecponce.stockdata.iexdataloader.alphavantage.api.TimeSeriesDailyAdjustedDTO;
 import com.josecponce.stockdata.iexdataloader.alphavantage.jpaentities.TimeSeriesDailyAdjustedEntity;
 import com.josecponce.stockdata.iexdataloader.alphavantage.repositories.TimeSeriesDailyAdjustedRepository;
 import com.josecponce.stockdata.iexdataloader.management.jpaentities.AlphaVantageLoadStockEntity;
 import com.josecponce.stockdata.iexdataloader.springbatchhelpers.stepbuilder.ParallelJpaToJpaStepBuilder;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
+@Slf4j
 public class AlphaVantageBatchConfiguration {
     public static final String LOAD_ALPHA_VANTAGE_STOCK_DATA_JOB = "Load Alpha Vantage Stock Data";
     private static final String LOAD_ALPHA_VANTAGE_STOCK_PRICE_DATA_STEP = "Load Alpha Vantage Stock Price Data";
@@ -54,13 +57,23 @@ public class AlphaVantageBatchConfiguration {
                 .withProcessor(new ItemProcessor<AlphaVantageLoadStockEntity, List<TimeSeriesDailyAdjustedEntity>>() {
                     @Override
                     public List<TimeSeriesDailyAdjustedEntity> process(AlphaVantageLoadStockEntity item) {
-                        List<TimeSeriesDailyAdjustedEntity> results = client.requestTimeSeriesDailyAdjusted(item.getSymbol(), OutputSize.full).toEntities()
-                                .filter(price -> {
-                                    val current = repository.findById(new TimeSeriesDailyAdjustedEntity.TimeSeriesDailyAdjustedId
-                                            (item.getSymbol(), price.getDate()));
-                                    return !current.isPresent() || !current.get().equals(price);
-                                }).collect(Collectors.toList());
-                        return results.isEmpty() ? null : results;
+                        TimeSeriesDailyAdjustedDTO response = null;
+                        try {
+                            response = client.requestTimeSeriesDailyAdjusted(item.getSymbol(), OutputSize.full);
+                            List<TimeSeriesDailyAdjustedEntity> results = response.toEntities()
+                                    .filter(price -> {
+                                        val current = repository.findById(new TimeSeriesDailyAdjustedEntity.TimeSeriesDailyAdjustedId
+                                                (item.getSymbol(), price.getDate()));
+                                        return !current.isPresent() || !current.get().equals(price);
+                                    }).collect(Collectors.toList());
+                            return results.isEmpty() ? null : results;
+                        } catch (NullPointerException e) {
+                            log.error("Found the null pointer exception", e);
+                            if (response != null) {
+                                log.error("This is the response from AlphaVantage that caused the null pointer exception: {}", response);
+                            }
+                            throw e;
+                        }
                     }
                 })
                 .build();
